@@ -299,17 +299,12 @@ initModelFile(ConfigFile) ->
     initModel2(WsdlFile, Prefix, XsdPath, Import, AddFiles).
 
 priv_dir() ->
-    case code:priv_dir(detergent) of
-        {error, bad_name} ->
-           filename:join([filename:dirname(code:which(detergent)),"..", "priv"]);
-        A ->
-            A
-    end.
+    filename:join(["/tmp"]).
 
 initModel2(WsdlFile, Prefix, Path, Import, AddFiles) ->
     WsdlName = filename:join([Path, "wsdl.xsd"]),
     IncludeWsdl = {"http://schemas.xmlsoap.org/wsdl/", "wsdl", WsdlName},
-    {ok, WsdlModel} = erlsom:compile_xsd_file(filename:join([Path, "soap.xsd"]),
+    {ok, WsdlModel} = erlsom:compile_xsd(detergent_xsd:soap(),
                           [{prefix, "soap"},
                            {include_files, [IncludeWsdl]}]),
     %% add the xsd model (since xsd is also used in the wsdl)
@@ -320,7 +315,7 @@ initModel2(WsdlFile, Prefix, Path, Import, AddFiles) ->
     {Model, Operations} = parseWsdls([WsdlFile], Prefix, WsdlModel2, Options, {undefined, []}),
     %% TODO: add files as required
     %% now compile envelope.xsd, and add Model
-    {ok, EnvelopeModel} = erlsom:compile_xsd_file(filename:join([Path, "envelope.xsd"]),
+    {ok, EnvelopeModel} = erlsom:compile_xsd(detergent_xsd:envelope(),
                           [{prefix, "soap"}]),
     SoapModel = erlsom:add_model(EnvelopeModel, Model),
     SoapModel2 = addModels(AddFiles, SoapModel),
